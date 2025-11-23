@@ -10,8 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from src.config import load_config
 from src.sheets import get_sheets_client, read_sheet_data
 from src.etl.loader import DataLoader
+from src.etl.data_cleaner import clean_dataframe
 from src.utils.infer_schema import clean_column_name
-from src.pipelines.current_sync import clean_dataframe # Используем ту же функцию очистки
 
 def run_historical_sync():
     print("📚 Запуск синхронизации ИСТОРИЧЕСКИХ данных (Historical Sync)...")

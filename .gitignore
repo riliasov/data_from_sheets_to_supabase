@@ -144,3 +144,15 @@ secrets/
 
 # MacOS
 .DS_Store
+
+# Project-specific temporary files
+*_log*.txt
+history_log*.txt
+current_log*.txt
+error.txt
+debug_*.py
+references_draft.json
+references_stats.json
+data_exploration_report.txt
+data_structure_analysis.json
+final_sources_report.json

@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from src.config import load_config
 from src.sheets import get_sheets_client, read_sheet_data
 from src.etl.loader import DataLoader
-from src.utils.infer_schema import clean_column_name # Используем ту же логику очистки имен
+from src.etl.data_cleaner import clean_dataframe
+from src.utils.infer_schema import clean_column_name
 
 def run_current_sync():
     print("🔄 Запуск синхронизации ТЕКУЩИХ данных (Current Sync)...")
@@ -142,59 +143,6 @@ def process_source(gc, loader, source_config, source_name, target_table):
         print(f"❌ Ошибка обработки {source_name}:")
         traceback.print_exc()
 
-def clean_dataframe(df, table_name):
-    """
-    Очищает данные перед загрузкой:
-    1. Числа: удаляет пробелы, конвертирует.
-    2. Даты: конвертирует в datetime.
-    3. Boolean: маппит.
-    4. Текст: strip(), пустые -> None.
-    """
-    numeric_keywords = [
-        'stoimost', 'summa', 'kolichestvo', 'bonus', 'nalichnye', 
-        'perevod', 'terminal', 'vdolg', 'zp', 'oplata', 'stavka', 'spisano',
-        'god', 'mesyats', 'chasy'
-    ]
-    
-    boolean_cols = ['probili_na_evotore', 'vnesli_v_crm', 'relevant', 'zamena']
-    
-    for col in df.columns:
-        # Пропускаем служебные
-        if col in ['source_row_id', 'row_hash']:
-            continue
-            
-        # 1. Даты
-        date_keywords = ['data', 'date', 'zapis']
-        if any(k in col for k in date_keywords):
-            # dayfirst=True для DD.MM.YYYY
-            df[col] = pd.to_datetime(df[col], dayfirst=True, errors='coerce')
-            continue
-
-        # 2. Числа
-        is_numeric = any(k in col for k in numeric_keywords)
-        if is_numeric:
-            if df[col].dtype == 'object':
-                # Удаляем пробелы только для чисел и меняем запятую на точку
-                df[col] = df[col].astype(str).str.replace('\xa0', '').str.replace(' ', '').str.replace(',', '.').str.strip()
-            # Конвертируем
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-            continue
-            
-        # 3. Boolean
-        if col in boolean_cols:
-            df[col] = df[col].map({
-                'TRUE': True, 'True': True, 'true': True, '1': True, 1: True,
-                'FALSE': False, 'False': False, 'false': False, '0': False, 0: False,
-                None: None
-            })
-            continue
-
-        # 4. Остальной текст (клиенты, комментарии и т.д.)
-        if df[col].dtype == 'object':
-            df[col] = df[col].astype(str).str.strip()
-            df[col] = df[col].replace({'': None, 'nan': None, 'None': None})
-            
-    return df
 
 if __name__ == "__main__":
     run_current_sync()
