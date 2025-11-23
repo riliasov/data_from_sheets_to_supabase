@@ -12,6 +12,10 @@ def load_config():
             - GOOGLE_SHEETS_CREDENTIALS_FILE: Путь к JSON файлу с credentials
             - SOURCES: Словарь с описанием источников данных (из secrets/sources.json)
     """
+    # Явно указываем путь к .env в папке secrets
+    env_path = os.path.join(os.path.dirname(__file__), '..', 'secrets', '.env')
+    load_dotenv(env_path)
+    # Также пробуем загрузить из корня (на случай если там тоже есть)
     load_dotenv()
     
     config = {
@@ -37,7 +41,13 @@ def load_config():
     #     raise ValueError("Missing SUPABASE_DB_URL environment variable")
 
     # Load sources
-    sources_path = os.path.join(os.path.dirname(__file__), '..', 'secrets', 'sources.json')
+    # 1. Сначала ищем в папке src/ (новое расположение)
+    sources_path = os.path.join(os.path.dirname(__file__), 'sources.json')
+    
+    # 2. Если нет, ищем в secrets/ (старое расположение)
+    if not os.path.exists(sources_path):
+        sources_path = os.path.join(os.path.dirname(__file__), '..', 'secrets', 'sources.json')
+    
     if os.path.exists(sources_path):
         import json
         with open(sources_path, 'r', encoding='utf-8') as f:
