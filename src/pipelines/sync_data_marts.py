@@ -56,9 +56,7 @@ def run_sync_data_marts():
     """Запускает синхронизацию всех витрин данных с детальным логированием."""
     script_start = time.time()
     
-    logger.info("=" * 70)
     logger.info("🚀 Запуск синхронизации Data Marts")
-    logger.info("=" * 70)
     
     # Инициализация
     step_start = time.time()
@@ -89,15 +87,11 @@ def run_sync_data_marts():
         
         # Итог
         total_time = time.time() - script_start
-        logger.info("=" * 70)
         logger.info(f"✅ Синхронизация завершена: {total_time:.1f}s")
-        logger.info("=" * 70)
         
     except Exception as e:
         total_time = time.time() - script_start
-        logger.error("=" * 70)
         logger.error(f"❌ Ошибка ({total_time:.1f}s): {e}")
-        logger.error("=" * 70)
         import traceback
         logger.debug(traceback.format_exc())
     finally:
