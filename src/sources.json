@@ -19,9 +19,20 @@
             "1318679629"
         ],
         "ranges": {
-            "1318679629": "B4:W"
+            "1318679629": "B:W"
         },
         "_hint": "Клиент_hst"
+    },
+    "clients_cur": {
+        "spreadsheet_id": "1-kEt2r-mzqI6PmtFqcFaS7XVAPdlde5FxYMv4DXwd94",
+        "use_gid": true,
+        "sheet_identifiers": [
+            "389044927"
+        ],
+        "ranges": {
+            "389044927": "A2:V"
+        },
+        "_hint": "Клиент_cur"
     },
     "historical_expenses": {
         "spreadsheet_id": "1kt8CeDDEpJuDLX6nsr2_ZxAl4L0jg9p83wqS0VEFFr0",
@@ -74,7 +85,7 @@
             "1856560934"
         ],
         "ranges": {
-            "1856560934": "A2:J"
+            "1856560934": "A1:J"
         },
         "_hint": "Тренировки"
     },

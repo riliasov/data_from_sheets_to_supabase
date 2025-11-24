@@ -21,7 +21,7 @@ def export_dataframe_to_sheet(
         df: DataFrame для экспорта
         spreadsheet_id: ID целевой таблицы
         gid: GID целевого листа
-        clear_first: Очищать лист перед записью
+        clear_first: Очищать диапазон данных перед записью
     """
     # Открываем spreadsheet
     spreadsheet = gc.open_by_key(spreadsheet_id)
@@ -38,28 +38,52 @@ def export_dataframe_to_sheet(
     
     print(f"📤 Экспорт в лист: {worksheet.title} (gid: {gid})")
     
-    # Очистка листа
-    if clear_first:
-        worksheet.clear()
-        print("   🧹 Лист очищен")
-    
     # Подготовка данных: headers + rows
-    values = [df.columns.tolist()] + df.values.tolist()
+    df_export = df.copy()
     
-    # Обновление всех ячеек разом (batch update)
-    worksheet.update(range_name='A1', values=values, value_input_option='RAW')
+    # Обрабатываем мобильные номера - оставляем как есть (число)
+    # Google Sheets сам решит как отображать
+    if 'mob' in df_export.columns:
+        df_export['mob'] = df_export['mob'].fillna('')
     
-    print(f"   ✅ Экспортировано {len(df)} строк, {len(df.columns)} колонок")
+    # Обрабатываем даты - конвертируем в формат DD.MM.YYYY (строка)
+    for col in df_export.columns:
+        if pd.api.types.is_datetime64_any_dtype(df_export[col]):
+            df_export[col] = df_export[col].dt.strftime('%d.%m.%Y')
+        elif df_export[col].dtype == 'object' and col == 'dob':
+            df_export[col] = df_export[col].apply(
+                lambda x: x.strftime('%d.%m.%Y') if hasattr(x, 'strftime') else (str(x) if pd.notna(x) else '')
+            )
+
+    values = [df_export.columns.tolist()] + df_export.values.tolist()
     
-    # Форматирование заголовков (опционально)
-    try:
-        worksheet.format('A1:Z1', {
-            "textFormat": {"bold": True},
-            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
-        })
-        print("   ✨ Заголовки отформатированы")
-    except Exception as e:
-        print(f"   ⚠️  Ошибка форматирования: {e}")
+    # Определяем диапазон для обновления (только колонки с данными)
+    num_cols = len(df.columns)
+    num_rows = len(df) + 1  # +1 для заголовка
+    
+    # Преобразуем число колонок в букву (A=1, B=2, ..., Z=26, AA=27, etc)
+    def col_num_to_letter(n):
+        result = ''
+        while n > 0:
+            n -= 1
+            result = chr(65 + (n % 26)) + result
+            n //= 26
+        return result
+    
+    last_col = col_num_to_letter(num_cols)
+    range_name = f'A1:{last_col}{num_rows}'
+    
+    # Очистка только диапазона с данными (не весь лист, не трогаем формулы справа)
+    if clear_first:
+        worksheet.batch_clear([range_name])
+        print(f"   🧹 Диапазон {range_name} очищен")
+    
+    # Обновление ячеек
+    # USER_ENTERED позволяет Google Sheets интерпретировать данные (числа как числа, даты как даты)
+    worksheet.update(range_name=range_name, values=values, value_input_option='USER_ENTERED')
+    
+    print(f"   ✅ Экспортировано {len(df)} строк, {len(df.columns)} колонок в диапазон {range_name}")
+
 
 
 def export_balance_to_sheets(
