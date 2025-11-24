@@ -3,6 +3,10 @@ Exporter - Экспорт витрин данных в Google Sheets.
 """
 import pandas as pd
 import gspread
+import json
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 from typing import Optional
 
 
@@ -36,7 +40,7 @@ def export_dataframe_to_sheet(
     if worksheet is None:
         raise ValueError(f"Лист с gid={gid} не найден в spreadsheet {spreadsheet_id}")
     
-    print(f"📤 Экспорт в лист: {worksheet.title} (gid: {gid})")
+    logger.info(f"📤 Экспорт в лист: {worksheet.title} (gid: {gid})")
     
     # Подготовка данных: headers + rows
     df_export = df.copy()
@@ -76,13 +80,13 @@ def export_dataframe_to_sheet(
     # Очистка только диапазона с данными (не весь лист, не трогаем формулы справа)
     if clear_first:
         worksheet.batch_clear([range_name])
-        print(f"   🧹 Диапазон {range_name} очищен")
+        logger.info(f"   🧹 Диапазон {range_name} очищен")
     
     # Обновление ячеек
     # USER_ENTERED позволяет Google Sheets интерпретировать данные (числа как числа, даты как даты)
     worksheet.update(range_name=range_name, values=values, value_input_option='USER_ENTERED')
     
-    print(f"   ✅ Экспортировано {len(df)} строк, {len(df.columns)} колонок в диапазон {range_name}")
+    logger.info(f"   ✅ Экспортировано {len(df)} строк, {len(df.columns)} колонок в диапазон {range_name}")
 
 
 
@@ -119,7 +123,7 @@ def export_all_datamarts(
         spreadsheet_id: ID целевой таблицы
         balance_gid: GID для листа с балансом
     """
-    print("\n📊 Экспорт витрин в Google Sheets...")
+    logger.info("\n📊 Экспорт витрин в Google Sheets...")
     
     # Пока экспортируем только balance
     # В будущем можно добавить отдельные листы для sales и trainings
@@ -130,4 +134,4 @@ def export_all_datamarts(
         balance_gid
     )
     
-    print("✅ Экспорт завершен\n")
+    logger.info("✅ Экспорт завершен\n")

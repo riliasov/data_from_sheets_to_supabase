@@ -22,6 +22,9 @@ from src.config import load_config
 from src.sheets import get_sheets_client
 from src.data_marts.aggregator import build_all_datamarts
 from src.data_marts.exporter import export_all_datamarts
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def log_step(step_name, start_time=None):
@@ -53,11 +56,10 @@ def run_sync_data_marts():
     """Запускает синхронизацию всех витрин данных с детальным логированием."""
     script_start = time.time()
     
-    print("=" * 70)
-    print("🚀 Запуск синхронизации Data Marts")
-    print(f"📅 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 70)
-    print()
+    logger.info("=" * 70)
+    logger.info("🚀 Запуск синхронизации Data Marts")
+    logger.info(f"📅 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 70)
     
     # Этап 0: Инициализация
     step_start = log_step("📦 Инициализация подключений")
@@ -66,7 +68,7 @@ def run_sync_data_marts():
     db_url = config.get('SUPABASE_DB_URL')
     
     if not db_url:
-        print("❌ Ошибка: Нет подключения к БД")
+        logger.error("❌ Ошибка: Нет подключения к БД")
         return
     
     engine = sqlalchemy.create_engine(db_url)
@@ -81,22 +83,19 @@ def run_sync_data_marts():
         log_step("📊 Построение витрин", step_start)
         
         # Показываем статистику
-        print()
-        print("📈 Статистика витрин:")
-        print(f"   • Sales Summary: {len(datamarts['sales'])} строк")
-        print(f"   • Trainings Summary: {len(datamarts['trainings'])} строк")
-        print(f"   • Client Balance: {len(datamarts['balance'])} строк")
-        print()
+        logger.info("📈 Статистика витрин:")
+        logger.info(f"   • Sales Summary: {len(datamarts['sales'])} строк")
+        logger.info(f"   • Trainings Summary: {len(datamarts['trainings'])} строк")
+        logger.info(f"   • Client Balance: {len(datamarts['balance'])} строк")
         
         # Preview
-        print("📋 Preview витрин:\n")
-        print("  💰 Sales Summary (топ 5):")
-        print(datamarts['sales'].head().to_string(index=False))
-        print("\n  🏊 Trainings Summary (топ 5):")
-        print(datamarts['trainings'].head().to_string(index=False))
-        print("\n  📊 Client Balance (топ 10):")
-        print(datamarts['balance'].head(10).to_string(index=False))
-        print()
+        logger.info("📋 Preview витрин:\n")
+        logger.info("  💰 Sales Summary (топ 5):")
+        logger.info(f"\n{datamarts['sales'].head().to_string(index=False)}")
+        logger.info("\n  🏊 Trainings Summary (топ 5):")
+        logger.info(f"\n{datamarts['trainings'].head().to_string(index=False)}")
+        logger.info("\n  📊 Client Balance (топ 10):")
+        logger.info(f"\n{datamarts['balance'].head(10).to_string(index=False)}")
         
         # Этап 2: Экспорт в Google Sheets
         step_start = log_step("📤 Экспорт в Google Sheets")
@@ -105,21 +104,19 @@ def run_sync_data_marts():
         
         # Итоговая статистика
         total_time = time.time() - script_start
-        print()
-        print("=" * 70)
-        print("✅ Синхронизация завершена успешно!")
-        print(f"⏱️  Общее время выполнения: {total_time:.2f}s ({total_time/60:.1f}m)")
-        print("=" * 70)
+        logger.info("=" * 70)
+        logger.info("✅ Синхронизация завершена успешно!")
+        logger.info(f"⏱️  Общее время выполнения: {total_time:.2f}s ({total_time/60:.1f}m)")
+        logger.info("=" * 70)
         
     except Exception as e:
         total_time = time.time() - script_start
-        print()
-        print("=" * 70)
-        print(f"❌ Ошибка при синхронизации: {e}")
-        print(f"⏱️  Время до ошибки: {total_time:.2f}s")
-        print("=" * 70)
+        logger.error("=" * 70)
+        logger.error(f"❌ Ошибка при синхронизации: {e}")
+        logger.error(f"⏱️  Время до ошибки: {total_time:.2f}s")
+        logger.error("=" * 70)
         import traceback
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
     finally:
         engine.dispose()
 

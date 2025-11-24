@@ -6,6 +6,9 @@ Aggregator - Pandas-based агрегация данных для витрин.
 import pandas as pd
 from sqlalchemy import Engine
 import re
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def normalize_client_name(name):
@@ -409,23 +412,23 @@ def calculate_client_balance(sales_df: pd.DataFrame, trainings_df: pd.DataFrame,
 
 
 def build_all_datamarts(engine: Engine) -> dict:
-    print("📊 Построение витрин данных...")
+    logger.info("📊 Построение витрин данных...")
     
-    print("  1️⃣  Загрузка справочника клиентов...")
+    logger.info("  1️⃣  Загрузка справочника клиентов...")
     clients_info = get_clients_info(engine)
-    print(f"      ✅ {len(clients_info)} клиентов")
+    logger.info(f"      ✅ {len(clients_info)} клиентов")
     
-    print("  2️⃣  Агрегация продаж...")
+    logger.info("  2️⃣  Агрегация продаж...")
     sales = aggregate_client_sales(engine)
-    print(f"      ✅ {len(sales)} записей")
+    logger.info(f"      ✅ {len(sales)} записей")
     
-    print("  3️⃣  Агрегация списаний...")
+    logger.info("  3️⃣  Агрегация списаний...")
     trainings = aggregate_client_trainings(engine)
-    print(f"      ✅ {len(trainings)} записей")
+    logger.info(f"      ✅ {len(trainings)} записей")
     
-    print("  4️⃣  Расчет баланса...")
+    logger.info("  4️⃣  Расчет баланса...")
     balance = calculate_client_balance(sales, trainings, clients_info)
-    print(f"      ✅ {len(balance)} строк итоговой витрины")
+    logger.info(f"      ✅ {len(balance)} строк итоговой витрины")
     
     return {
         'sales': sales,
