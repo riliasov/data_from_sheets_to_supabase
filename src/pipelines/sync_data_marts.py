@@ -58,12 +58,10 @@ def run_sync_data_marts():
     
     logger.info("=" * 70)
     logger.info("🚀 Запуск синхронизации Data Marts")
-    logger.info(f"📅 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 70)
     
-    # Этап 0: Инициализация
-    step_start = log_step("📦 Инициализация подключений")
-    
+    # Инициализация
+    step_start = time.time()
     config = load_config()
     db_url = config.get('SUPABASE_DB_URL')
     
@@ -73,50 +71,35 @@ def run_sync_data_marts():
     
     engine = sqlalchemy.create_engine(db_url)
     gc = get_sheets_client(config)
-    log_step("📦 Инициализация", step_start)
-    print()
+    elapsed = time.time() - step_start
+    logger.info(f"📦 Инициализация: {elapsed:.1f}s")
     
     try:
-        # Этап 1: Построение витрин
-        step_start = log_step("📊 Построение витрин данных")
+        # Построение витрин
+        step_start = time.time()
         datamarts = build_all_datamarts(engine)
-        log_step("📊 Построение витрин", step_start)
+        elapsed = time.time() - step_start
+        logger.info(f"📊 Построение витрин: {elapsed:.1f}s (Sales: {len(datamarts['sales'])}, Trainings: {len(datamarts['trainings'])}, Balance: {len(datamarts['balance'])} строк)")
         
-        # Показываем статистику
-        logger.info("📈 Статистика витрин:")
-        logger.info(f"   • Sales Summary: {len(datamarts['sales'])} строк")
-        logger.info(f"   • Trainings Summary: {len(datamarts['trainings'])} строк")
-        logger.info(f"   • Client Balance: {len(datamarts['balance'])} строк")
-        
-        # Preview
-        logger.info("📋 Preview витрин:\n")
-        logger.info("  💰 Sales Summary (топ 5):")
-        logger.info(f"\n{datamarts['sales'].head().to_string(index=False)}")
-        logger.info("\n  🏊 Trainings Summary (топ 5):")
-        logger.info(f"\n{datamarts['trainings'].head().to_string(index=False)}")
-        logger.info("\n  📊 Client Balance (топ 10):")
-        logger.info(f"\n{datamarts['balance'].head(10).to_string(index=False)}")
-        
-        # Этап 2: Экспорт в Google Sheets
-        step_start = log_step("📤 Экспорт в Google Sheets")
+        # Экспорт в Google Sheets
+        step_start = time.time()
         export_all_datamarts(gc, datamarts)
-        log_step("📤 Экспорт в Google Sheets", step_start)
+        elapsed = time.time() - step_start
+        logger.info(f"📤 Экспорт в Google Sheets: {elapsed:.1f}s")
         
-        # Итоговая статистика
+        # Итог
         total_time = time.time() - script_start
         logger.info("=" * 70)
-        logger.info("✅ Синхронизация завершена успешно!")
-        logger.info(f"⏱️  Общее время выполнения: {total_time:.2f}s ({total_time/60:.1f}m)")
+        logger.info(f"✅ Синхронизация завершена: {total_time:.1f}s")
         logger.info("=" * 70)
         
     except Exception as e:
         total_time = time.time() - script_start
         logger.error("=" * 70)
-        logger.error(f"❌ Ошибка при синхронизации: {e}")
-        logger.error(f"⏱️  Время до ошибки: {total_time:.2f}s")
+        logger.error(f"❌ Ошибка ({total_time:.1f}s): {e}")
         logger.error("=" * 70)
         import traceback
-        logger.error(traceback.format_exc())
+        logger.debug(traceback.format_exc())
     finally:
         engine.dispose()
 

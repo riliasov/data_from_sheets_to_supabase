@@ -412,23 +412,11 @@ def calculate_client_balance(sales_df: pd.DataFrame, trainings_df: pd.DataFrame,
 
 
 def build_all_datamarts(engine: Engine) -> dict:
-    logger.info("📊 Построение витрин данных...")
-    
-    logger.info("  1️⃣  Загрузка справочника клиентов...")
+    """Построение всех витрин данных."""
     clients_info = get_clients_info(engine)
-    logger.info(f"      ✅ {len(clients_info)} клиентов")
-    
-    logger.info("  2️⃣  Агрегация продаж...")
     sales = aggregate_client_sales(engine)
-    logger.info(f"      ✅ {len(sales)} записей")
-    
-    logger.info("  3️⃣  Агрегация списаний...")
     trainings = aggregate_client_trainings(engine)
-    logger.info(f"      ✅ {len(trainings)} записей")
-    
-    logger.info("  4️⃣  Расчет баланса...")
     balance = calculate_client_balance(sales, trainings, clients_info)
-    logger.info(f"      ✅ {len(balance)} строк итоговой витрины")
     
     return {
         'sales': sales,

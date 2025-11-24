@@ -6,8 +6,12 @@
 
 Режим: Full Reload.
 """
+from src.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def run_references_sync():
-    print("Запуск синхронизации справочников...")
+    logger.info("Запуск синхронизации справочников...")
     # TODO: Реализовать логику
     pass
