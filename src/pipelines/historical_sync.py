@@ -13,8 +13,17 @@ from src.etl.loader import DataLoader
 from src.etl.data_cleaner import clean_dataframe
 from src.utils.infer_schema import clean_column_name
 from src.logger import get_logger
+import json
+import os
 
 logger = get_logger(__name__)
+
+# Загружаем маппинг колонок
+COLUMN_MAPPINGS = {}
+mapping_path = os.path.join(os.path.dirname(__file__), '../config/column_mappings.json')
+if os.path.exists(mapping_path):
+    with open(mapping_path, 'r', encoding='utf-8') as f:
+        COLUMN_MAPPINGS = json.load(f)
 
 def run_historical_sync():
     logger.info("📚 Запуск синхронизации ИСТОРИЧЕСКИХ данных (Historical Sync)...")
@@ -130,6 +139,11 @@ def process_source(gc, loader, source_config, source_name, target_table):
                 rename_map[col] = clean
                 
             df_renamed = df.rename(columns=rename_map)
+            
+            # Применяем маппинг колонок если есть для этой таблицы
+            if target_table in COLUMN_MAPPINGS:
+                table_mapping = COLUMN_MAPPINGS[target_table]
+                df_renamed = df_renamed.rename(columns=table_mapping)
             
             # Добавляем метаданные
             df_renamed['source_row_id'] = range(2, len(df_renamed) + 2)

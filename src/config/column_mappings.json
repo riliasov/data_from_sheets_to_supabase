@@ -1,0 +1,26 @@
+{
+    "clients_hst": {
+        "col_unknown": "klient",
+        "col_1": "data_obrascheniya",
+        "col_67": "mobilnyy",
+        "col_2": "zapros_pri_obraschenii",
+        "col_3": "kto_vnyos_informatsiyu_ob_obraschenii",
+        "col_4": "familiya_vzroslogo",
+        "col_5": "imya_vzroslogo",
+        "arhiv": "imya_rebenka",
+        "col_544": "data_rozhdeniya_rebenka",
+        "col_6": "pol_rebyonka",
+        "col_7": "tip",
+        "col_8": "kto_sozdal",
+        "vtoroy_rebenok": "zapis_na",
+        "col_70": "istochnik",
+        "col_15": "kommentariy_pri_zapisi",
+        "col_16": "kto_zapisal",
+        "col_17": "tsena_probnogo",
+        "col_18": "kto_oformil_prodazhu_probnogo",
+        "col_19": "instruktor",
+        "col_20": "kommentariy_posle_probnogo",
+        "col_21": "priobretennyy_abonement",
+        "col_22": "admin_v_den_vizita"
+    }
+}
