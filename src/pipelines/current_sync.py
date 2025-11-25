@@ -46,7 +46,8 @@ def run_current_sync():
         process_source(gc, loader, sources['current_trainings'], 'current_trainings', 'trainings_cur')
 
 def process_source(gc, loader, source_config, source_name, target_table):
-    logger.info(f"\n📦 Обработка {source_name} -> staging.{target_table}...")
+    # Убрали лог "📦 Обработка ..."
+    # logger.info(f"\n📦 Обработка {source_name} -> staging.{target_table}...")
     
     spreadsheet_id = source_config.get('spreadsheet_id')
     sheet_identifiers = source_config.get('sheet_identifiers', [])

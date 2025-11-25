@@ -59,7 +59,7 @@ def run_historical_sync():
         process_source(gc, loader, sources['clients_data'], 'clients_data', 'clients_hst')
 
 def process_source(gc, loader, source_config, source_name, target_table):
-    logger.info(f"\n📦 Обработка {source_name} -> staging.{target_table}...")
+    # Убрали лог "📦 Обработка ..."
     
     spreadsheet_id = source_config.get('spreadsheet_id')
     sheet_identifiers = source_config.get('sheet_identifiers', [])
@@ -67,20 +67,19 @@ def process_source(gc, loader, source_config, source_name, target_table):
     use_gid = source_config.get('use_gid', False)
     
     if not sheet_identifiers:
-        logger.info("   ⚠️ Нет идентификаторов листов")
+        logger.debug(f"⚠️ Нет листов для {target_table}")
         return
 
     # Для исторических данных может быть несколько листов (например, по годам)
     # Проходим по всем
     for sheet_id in sheet_identifiers:
         range_name = ranges.get(sheet_id)
-        logger.info(f"   📄 Лист: {sheet_id}...")
+        # Убрали лог "📄 Лист: ..."
         
         try:
             data = read_sheet_data(gc, spreadsheet_id, sheet_id, range_name, use_gid)
             if not data or len(data) < 2:
-                logger.info("      ⚠️ Нет данных или пустой лист")
-                continue
+                continue  # Молча пропускаем пустые листы
                 
             headers = data[0]
             
@@ -154,9 +153,9 @@ def process_source(gc, loader, source_config, source_name, target_table):
             # Загрузка
             loader.load_staging(df_cleaned, target_table, source_name)
             
-        except Exception as e:
-            logger.info(f"❌ Ошибка обработки листа {sheet_id}:")
-            traceback.print_exc()
+        except Exception:
+            logger.debug(f"Ошибка обработки {target_table}")
+            pass  # Молча продолжаем
 
 if __name__ == "__main__":
     run_historical_sync()

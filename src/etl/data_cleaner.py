@@ -1,10 +1,15 @@
 """
 Модуль для очистки и нормализации данных перед загрузкой в БД.
 """
+import re
 import pandas as pd
+import warnings
+
+# Подавляем предупреждения pandas о форматах дат
+warnings.filterwarnings('ignore', message='Could not infer format')
 
 
-def clean_dataframe(df, table_name):
+def clean_dataframe(df, table_name=None):
     """
     Очищает данные перед загрузкой:
     1. Числа: удаляет пробелы, конвертирует.
