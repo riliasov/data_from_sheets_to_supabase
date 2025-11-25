@@ -57,7 +57,7 @@ class DataLoader:
                 result = conn.execute(text(f"SELECT row_hash FROM staging.{table_name}"))
                 existing_hashes = {row[0] for row in result}
         except Exception as e:
-            logger.error(f"⚠️  Ошибка чтения существующих хэшей (возможно таблица пуста): {e}")
+            logger.debug(f"⚠️  Таблица {table_name} пуста или недоступна")
 
         # 3. Фильтрация новых строк
         new_records = [
@@ -66,10 +66,10 @@ class DataLoader:
         ]
         
         if not new_records:
-            logger.info(f"   ✅ Нет новых данных для {table_name} (все {len(records)} строк уже в базе)")
+            logger.info(f"   ✅ Нет новых данных для {table_name} (все {len(records)} строк)")
             return 0
             
-        logger.info(f"   🚀 Найдено {len(new_records)} новых/измененных строк. Вставка...")
+        logger.info(f"   🚀 Вставка {len(new_records)} новых строк...")
         
         # 4. Вставка (Bulk Insert)
         # Используем pandas to_sql или sqlalchemy insert
@@ -90,11 +90,11 @@ class DataLoader:
                 method='multi',
                 chunksize=1000 # Разбиваем на пачки
             )
-            logger.info(f"   ✅ Успешно загружено {len(new_records)} строк.")
+            logger.info(f"   ✅ Загружено {len(new_records)} строк")
             return len(new_records)
             
-        except Exception as e:
-            logger.error(f"❌ Ошибка при вставке в {table_name}: {e}")
+        except Exception:
+            logger.error(f"❌ Ошибка вставки в {table_name}")
             return 0
 
     def load_raw_json(self, data_list, table_name, spreadsheet_id, sheet_id):
