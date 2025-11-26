@@ -66,10 +66,10 @@ class DataLoader:
         ]
         
         if not new_records:
-            logger.info(f"   ✅ Нет новых данных для {table_name} (все {len(records)} строк)")
+            logger.info(f"✅ Нет новых данных для {table_name} (все {len(records)} строк)")
             return 0
             
-        logger.info(f"   🚀 Вставка {len(new_records)} новых строк...")
+        logger.info(f"🚀 Вставка {len(new_records)} новых строк...")
         
         # 4. Вставка (Bulk Insert)
         # Используем pandas to_sql или sqlalchemy insert
@@ -90,7 +90,7 @@ class DataLoader:
                 method='multi',
                 chunksize=1000 # Разбиваем на пачки
             )
-            logger.info(f"   ✅ Загружено {len(new_records)} строк")
+            logger.info(f"✅ Загружено {len(new_records)} строк")
             return len(new_records)
             
         except Exception:
