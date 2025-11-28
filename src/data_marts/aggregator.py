@@ -57,14 +57,25 @@ def aggregate_client_sales(engine: Engine) -> pd.DataFrame:
     Агрегирует продажи по клиентам с разделением на категории и типы.
     """
     query = """
-    SELECT klient, tip as type, kategoriya as category, produkt, kolichestvo, okonchatelnaya_stoimost
+    SELECT klient, tip as type, kategoriya as category, produkt, kolichestvo, okonchatelnaya_stoimost, data::TEXT as date_str
     FROM staging.sales_hst
     UNION ALL
-    SELECT klient, tip as type, kategoriya as category, produkt, kolichestvo, okonchatelnaya_stoimost
+    SELECT klient, tip as type, kategoriya as category, produkt, kolichestvo, okonchatelnaya_stoimost, data as date_str
     FROM staging.sales_cur
     WHERE klient IS NOT NULL AND tip IS NOT NULL AND data IS NOT NULL
     """
     df = pd.read_sql(query, engine)
+    
+    # Дедупликация по контенту (включая дату)
+    # Используем subset из всех значимых полей
+    dedup_cols = ['klient', 'type', 'category', 'produkt', 'kolichestvo', 'okonchatelnaya_stoimost', 'date_str']
+    
+    # Заполняем пропуски для корректного сравнения
+    for col in dedup_cols:
+        if col in df.columns:
+            df[col] = df[col].fillna('')
+            
+    df = df.drop_duplicates(subset=dedup_cols)
     
     df['klient_canonical'] = df['klient'].apply(lambda x: normalize_client_name(str(x)).lower())
     
@@ -128,7 +139,7 @@ def aggregate_client_trainings(engine: Engine) -> pd.DataFrame:
     """
     # 1. Trainings HST
     query_hst = """
-    SELECT klient, tip as type, status, kategoriya as category
+    SELECT klient, tip as type, status, kategoriya as category, data::TEXT as date_str
     FROM staging.trainings_hst
     WHERE klient IS NOT NULL 
       AND tip IN ('Бассейн', 'Ванны')
@@ -138,7 +149,7 @@ def aggregate_client_trainings(engine: Engine) -> pd.DataFrame:
     # 2. Trainings CUR (структура: col_5=klient, col_6=status, col_7=tip, col_8=kategoriya)
     # ВАЖНО: включаем source_row_id для дедупликации
     query_cur = """
-    SELECT col_5 as klient, col_7 as type, col_6 as status, col_8 as category, source_row_id
+    SELECT col_5 as klient, col_7 as type, col_6 as status, col_8 as category, source_row_id, col_2 as date_str
     FROM staging.trainings_cur
     WHERE col_5 IS NOT NULL 
       AND col_7 IN ('Бассейн', 'Ванны')
@@ -151,6 +162,16 @@ def aggregate_client_trainings(engine: Engine) -> pd.DataFrame:
     
     # Объединяем
     df = pd.concat([df_hst, df_cur], ignore_index=True)
+    
+    # Дедупликация по контенту (включая дату) - аналогично sales
+    dedup_cols = ['klient', 'type', 'status', 'category', 'date_str']
+    
+    # Заполняем пропуски для корректного сравнения
+    for col in dedup_cols:
+        if col in df.columns:
+            df[col] = df[col].fillna('')
+    
+    df = df.drop_duplicates(subset=dedup_cols)
     
     # Фильтруем Администратор и другие служебные записи
     df = df[df['klient'] != 'Администратор'].copy()

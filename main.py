@@ -5,7 +5,7 @@ from src.pipelines.references_sync import run_references_sync
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='ETL Runner')
-    parser.add_argument('--scope', choices=['current', 'historical', 'references', 'all'], 
+    parser.add_argument('--scope', choices=['current', 'historical', 'references', 'datamarts', 'all'], 
                         required=True, help='Scope of sync')
     
     args = parser.parse_args()
@@ -18,6 +18,10 @@ def main():
         
     if args.scope in ['references', 'all']:
         run_references_sync()
+
+    if args.scope in ['datamarts', 'all']:
+        from src.pipelines.sync_data_marts import run_sync_data_marts
+        run_sync_data_marts()
 
 if __name__ == '__main__':
     main()

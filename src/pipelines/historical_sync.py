@@ -3,6 +3,7 @@ from typing import Dict
 
 from src.core.etl_pipeline import ETLPipeline
 from src.config import load_config
+import os
 import sqlalchemy
 
 class HistoricalSyncPipeline(ETLPipeline):
