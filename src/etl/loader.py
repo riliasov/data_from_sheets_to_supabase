@@ -20,9 +20,25 @@ class DataLoader:
 
     def _calculate_row_hash(self, row: pd.Series) -> str:
         """Считает MD5 хеш строки для дедупликации."""
-        # Преобразуем строку в JSON, чтобы гарантировать порядок и формат
-        # date_format='iso' важен для дат
-        row_json = row.to_json(date_format='iso', force_ascii=False)
+        # Используем robust подход для чисел (1.0 == 1)
+        data = row.to_dict()
+        normalized_data = {}
+        
+        for k, v in data.items():
+            if pd.isna(v):
+                normalized_data[k] = None
+            elif isinstance(v, float) and v.is_integer():
+                normalized_data[k] = int(v)
+            else:
+                normalized_data[k] = v
+                
+        def json_default(obj):
+            if hasattr(obj, 'isoformat'):
+                return obj.isoformat()
+            return str(obj)
+
+        # sort_keys=True важен для детерминированности
+        row_json = json.dumps(normalized_data, sort_keys=True, default=json_default, ensure_ascii=False)
         return hashlib.md5(row_json.encode('utf-8')).hexdigest()
 
     def load_staging(self, df: pd.DataFrame, table_name: str, source_name: str) -> int:

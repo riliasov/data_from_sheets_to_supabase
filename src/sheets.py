@@ -25,10 +25,10 @@ def get_sheets_client(config):
     if not os.path.exists(creds_file):
         raise FileNotFoundError(f"Credentials file not found at: {creds_file}")
         
-    # Обновленные scopes для записи в Sheets (data marts экспорт)
+    # Используются read-only права (spreadsheets.readonly, drive.readonly).
     scope = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        'https://www.googleapis.com/auth/drive.readonly'
     ]
     
     try:
